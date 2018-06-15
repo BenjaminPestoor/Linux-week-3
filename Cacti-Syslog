@@ -4,20 +4,12 @@ apt install cacti-spine
 apt install rsyslog-mysql
 apt install unzip
 
+/usr/share/cacti/site/plugin/syslog/
+wget https://transfer.sh/aH7ua/plugin_syslog-develop.zip
+unzip plugin_syslog-develop.zip
+mv plugin_syslog-develop syslog
 
-NANO:
-/etc/rsyslog.d/cacti.conf
-  $ModLoad imudp
-  $UDPServerRun 514
-  $ModLoad ommysql
-
-  $template cacti_syslog,"INSERT INTO syslog_incoming(facility_id, pri$
-  values (%syslogfacility%, %syslogpriority%, '%programname%', '%timer$
-  '%timereported:::date-mysql%', '%HOSTNAME%', TRIM('%msg%'))", SQL
-
-  *.* >localhost,cacti,root,DhWut5b3;cacti_syslog
-
-/usr/share/cacti/site/plugin/syslog/config.php
+/usr/share/cacti/site/plugin/syslog/config.php (change lines)
   $use_cacti_db = true;
 
   if (!$use_cacti_db) {
@@ -35,6 +27,19 @@ NANO:
           $syslogdb_password = 'DhWut5b3';
           $syslogdb_port     = $database_port;
   }
+  
+NANO:
+/etc/rsyslog.d/cacti.conf
+  $ModLoad imudp
+  $UDPServerRun 514
+  $ModLoad ommysql
+
+  $template cacti_syslog,"INSERT INTO syslog_incoming(facility_id, pri$
+  values (%syslogfacility%, %syslogpriority%, '%programname%', '%timer$
+  '%timereported:::date-mysql%', '%HOSTNAME%', TRIM('%msg%'))", SQL
+
+  *.* >localhost,cacti,root,DhWut5b3;cacti_syslog
+
 
 
 Client server:
@@ -44,7 +49,7 @@ apt install apache2
 apt install php
 
 NANO:
-/etc/snmp/snmpd.conf
+/etc/snmp/snmpd.conf (changes lines)
   #
   #  AGENT BEHAVIOUR
   #
