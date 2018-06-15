@@ -1,0 +1,87 @@
+Monitor server:
+apt install cacti
+apt install cacti-spine
+apt install rsyslog-mysql
+apt install unzip
+
+
+NANO:
+/etc/rsyslog.d/cacti.conf
+  $ModLoad imudp
+  $UDPServerRun 514
+  $ModLoad ommysql
+
+  $template cacti_syslog,"INSERT INTO syslog_incoming(facility_id, pri$
+  values (%syslogfacility%, %syslogpriority%, '%programname%', '%timer$
+  '%timereported:::date-mysql%', '%HOSTNAME%', TRIM('%msg%'))", SQL
+
+  *.* >localhost,cacti,root,DhWut5b3;cacti_syslog
+
+/usr/share/cacti/site/plugin/syslog/config.php
+  $use_cacti_db = true;
+
+  if (!$use_cacti_db) {
+          $syslogdb_type     = 'mysql';
+          $syslogdb_default  = 'syslog';
+          $syslogdb_hostname = 'localhost';
+          $syslogdb_username = 'cactiuser';
+          $syslogdb_password = 'cactiuser';
+          $syslogdb_port     = 3306;
+  }else{
+          $syslogdb_type     = $database_type;
+          $syslogdb_default  = $database_default;
+          $syslogdb_hostname = $database_hostname;
+          $syslogdb_username = 'root';
+          $syslogdb_password = 'DhWut5b3';
+          $syslogdb_port     = $database_port;
+  }
+
+
+Client server:
+apt install snmp snmpd
+apt install mysql-server
+apt install apache2
+apt install php
+
+NANO:
+/etc/snmp/snmpd.conf
+  #
+  #  AGENT BEHAVIOUR
+  #
+
+  #  Listen for connections from the local system only
+  #  agentAddress  udp:127.0.0.1:161
+  Listen for connections on all interfaces (both IPv4 *and* IPv6) agen$
+
+/etc/rsyslog.d/remote.conf
+  $ModLoad imfile
+  $InputFilePollInterval 10
+  $PrivDropToGroup adm
+  $WorkDirectory /var/spool/rsyslog
+
+  #Apache access file: 
+  $InputFileName /var/log/apache2/access.log
+  $InputFileTag apache-access:
+  $InputFileStateFile stat-apache-access
+  $InputFileSeverity info
+  $InputFilePersistStateInterval 20000
+  $InputRunFileMonitor
+
+  #Apache Error file:
+  $InputFileName /var/log/apache2/error.log
+  $InputFileTag apache-error:
+  $InputFileStateFile stat-apache-error
+  $InputFileSeverity error
+  $InputFilePersistStateInterval 20000
+  $InputRunFileMonitor
+
+  #Mysql file:
+  $InputFileName /var/log/mysql/error.log
+  $InputFileTag mysql-error:
+  $InputFileStateFile stat-mysql-error
+  $InputFileSeverity error
+  $InputFilePersistStateInterval 20000
+  $InputRunFileMonitor
+
+  *.* @10.1.1.6
+  *.* @10.1.1.4
